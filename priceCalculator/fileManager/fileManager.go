@@ -9,9 +9,14 @@ import (
 	"strconv"
 )
 
+type FileManager struct {
+	InputFilePath  string
+	OutputFilePath string
+}
+
 // Reads lines from a given file and converts it to float64
-func ReadLinesFromFile(fileName string) ([]float64, error) {
-	file, err := os.Open("prices.txt")
+func (fm FileManager) ReadLinesFromFile() ([]float64, error) {
+	file, err := os.Open(fm.InputFilePath)
 	if err != nil {
 		fmt.Println("Could not open file.")
 		return nil, err
@@ -39,8 +44,8 @@ func ReadLinesFromFile(fileName string) ([]float64, error) {
 	return lines, nil
 }
 
-func WriteJsonToFile(path string, data any) error {
-	file, err := os.Create(path)
+func (fm FileManager) WriteResultToFile(data any) error {
+	file, err := os.Create(fm.OutputFilePath)
 
 	if err != nil {
 		return errors.New("failed to create file")
@@ -55,4 +60,11 @@ func WriteJsonToFile(path string, data any) error {
 
 	file.Close()
 	return nil
+}
+
+func New(inputPath, outputPath string) FileManager {
+	return FileManager{
+		InputFilePath:  inputPath,
+		OutputFilePath: outputPath,
+	}
 }
