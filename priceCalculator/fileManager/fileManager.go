@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 type FileManager struct {
@@ -21,6 +22,8 @@ func (fm FileManager) ReadLinesFromFile() ([]float64, error) {
 		fmt.Println("Could not open file.")
 		return nil, err
 	}
+
+	defer file.Close()
 
 	// Helps in reading contents from a file
 	scanner := bufio.NewScanner(file)
@@ -37,7 +40,6 @@ func (fm FileManager) ReadLinesFromFile() ([]float64, error) {
 	err = scanner.Err()
 	if err != nil {
 		fmt.Println("Reading the file content failed.")
-		file.Close()
 		return nil, err
 	}
 
@@ -51,6 +53,10 @@ func (fm FileManager) WriteResultToFile(data any) error {
 		return errors.New("failed to create file")
 	}
 
+	defer file.Close()
+
+	time.Sleep(3 * time.Second)
+
 	encoder := json.NewEncoder(file)
 	err = encoder.Encode(data)
 
@@ -58,7 +64,6 @@ func (fm FileManager) WriteResultToFile(data any) error {
 		return errors.New("failed to convert data to json")
 	}
 
-	file.Close()
 	return nil
 }
 

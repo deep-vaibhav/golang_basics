@@ -10,14 +10,41 @@ import (
 func main() {
 	taxes := []float64{0, 0.7, 0.1, 0.5}
 
-	for _, tax := range taxes {
+	// Channels for Goroutines
+	doneChans := make([]chan bool, len(taxes))
+	errorChans := make([]chan error, len(taxes))
+
+	for i, tax := range taxes {
+		doneChans[i] = make(chan bool)
+		errorChans[i] = make(chan error)
 		fm := fileManager.New("prices.txt", fmt.Sprintf("result_%.0f.json", tax*100))
 		priceJob := prices.NewTaxIncludedPricejob(fm, tax)
-		err := priceJob.Process()
 
-		if err != nil {
-			fmt.Println("Could not process job")
-			fmt.Println(err)
+		// Goroutine
+		go priceJob.Process(doneChans[i], errorChans[i])
+
+		// if err != nil {
+		// 	fmt.Println("Could not process job")
+		// 	fmt.Println(err)
+		// }
+	}
+
+	for i := range taxes {
+		select {
+		case err := <-errorChans[i]:
+			if err != nil {
+				fmt.Println(err)
+			}
+		case <-doneChans[i]:
+			fmt.Println("Done!")
 		}
 	}
+
+	// for _, errorChan := range errorChans {
+	// 	<-errorChan
+	// }
+
+	// for _, doneChan := range doneChans {
+	// 	<-doneChan
+	// }
 }

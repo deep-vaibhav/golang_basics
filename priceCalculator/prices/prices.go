@@ -25,11 +25,12 @@ func (job *TaxIncludedPriceJob) LoadPrices() error {
 	return nil
 }
 
-func (job *TaxIncludedPriceJob) Process() error {
+func (job *TaxIncludedPriceJob) Process(doneChan chan bool, errorChan chan error) {
 	err := job.LoadPrices()
 
 	if err != nil {
-		return err
+		errorChan <- err
+		return
 	}
 
 	result := make(map[string]string)
@@ -43,7 +44,10 @@ func (job *TaxIncludedPriceJob) Process() error {
 	job.TaxIncludedPrices = result
 
 	fmt.Println(result)
-	return job.IOManager.WriteResultToFile(job)
+	job.IOManager.WriteResultToFile(job)
+
+	// Once write is complete, pass true to the channel
+	doneChan <- true
 }
 
 func NewTaxIncludedPricejob(fm fileManager.FileManager, tax float64) *TaxIncludedPriceJob {
