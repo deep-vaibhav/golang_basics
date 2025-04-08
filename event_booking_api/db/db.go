@@ -2,8 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
+	// _ "github.com/glebarez/sqlite"
 )
 
 var DB *sql.DB
@@ -13,7 +15,12 @@ func InitDB() {
 	DB, err = sql.Open("sqlite3", "api.db")
 
 	if err != nil {
-		panic("Could not connect to database.")
+		panic(fmt.Sprintf("Could not connect to database: %v", err))
+	}
+
+	err = DB.Ping()
+	if err != nil {
+		panic(fmt.Sprintf("Database ping issue: %v", err))
 	}
 
 	DB.SetMaxOpenConns(10)
